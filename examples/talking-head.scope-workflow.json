@@ -1,0 +1,182 @@
+{
+  "format": "scope-workflow",
+  "format_version": "1.0",
+  "metadata": {
+    "name": "Avatar Reply (LTX-2 Talking Head + local LLM)",
+    "created_at": "2026-05-07T00:00:00.000Z",
+    "scope_version": "0.2.4"
+  },
+  "pipelines": [
+    {
+      "pipeline_id": "ltx2",
+      "pipeline_version": "0.3.0",
+      "source": {
+        "type": "git",
+        "plugin_name": "scope-ltx-2",
+        "plugin_version": "0.3.0",
+        "package_spec": "git+https://github.com/daydreamlive/scope-ltx-2"
+      },
+      "loras": [
+        {
+          "id": "lora-0",
+          "filename": "LTX-2.3-22b-AV-LoRA-talking-head-v1.safetensors",
+          "weight": 1,
+          "merge_mode": "permanent_merge",
+          "sha256": "83b603a3880dd2ca90a09b9a462a2473311ec00ce938743b3b70e05bc94a28dc",
+          "provenance": {
+            "source": "huggingface",
+            "repo_id": "elix3r/LTX-2.3-22b-AV-LoRA-talking-head",
+            "hf_filename": "LTX-2.3-22b-AV-LoRA-talking-head-v1.safetensors",
+            "url": "https://huggingface.co/elix3r/LTX-2.3-22b-AV-LoRA-talking-head/resolve/main/LTX-2.3-22b-AV-LoRA-talking-head-v1.safetensors"
+          }
+        }
+      ],
+      "params": {
+        "input_mode": "text",
+        "height": 200,
+        "width": 200,
+        "num_frames": 121,
+        "num_steps": 8,
+        "schedule": "distilled",
+        "frame_rate": 25,
+        "lora_merge_strategy": "permanent_merge",
+        "i2v_image": "/home/user/.daydream-scope/assets/avatar_reply_reference.png",
+        "i2v_strength": 1,
+        "audio_mode": "driving",
+        "randomize_seed": false,
+        "base_seed": 42
+      }
+    }
+  ],
+  "prompts": [
+    {
+      "text": "OHWXPERSON, a portrait of a person facing the camera in a softly lit studio, neutral background. The person is talking, and he says: \"Loaded by the Avatar Reply node.\"",
+      "weight": 1
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "reply",
+        "type": "node",
+        "node_type_id": "llm",
+        "params": {
+          "question": "What is your favorite color?",
+          "template": "OHWXPERSON, a portrait of a person facing the camera in a softly lit studio, neutral background. The person is talking, and he says: \"{answer}\"",
+          "model_id": "Qwen/Qwen2.5-0.5B-Instruct",
+          "max_new_tokens": 64
+        },
+        "x": 100,
+        "y": 240,
+        "w": 280,
+        "h": 320
+      },
+      {
+        "id": "ltx2",
+        "type": "pipeline",
+        "pipeline_id": "ltx2",
+        "x": 460,
+        "y": 140,
+        "w": 280,
+        "h": 540
+      },
+      {
+        "id": "output",
+        "type": "sink",
+        "x": 840,
+        "y": 180,
+        "w": 240,
+        "h": 200
+      },
+      {
+        "id": "record",
+        "type": "record",
+        "x": 840,
+        "y": 420,
+        "w": 200,
+        "h": 100
+      }
+    ],
+    "edges": [
+      {
+        "from": "reply",
+        "from_port": "out",
+        "to_node": "ltx2",
+        "to_port": "prompts",
+        "kind": "stream"
+      },
+      {
+        "from": "ltx2",
+        "from_port": "video",
+        "to_node": "output",
+        "to_port": "video",
+        "kind": "stream"
+      },
+      {
+        "from": "ltx2",
+        "from_port": "video",
+        "to_node": "record",
+        "to_port": "video",
+        "kind": "stream"
+      }
+    ],
+    "ui_state": {
+      "nodes": [
+        {
+          "id": "lora-0",
+          "type": "lora",
+          "position": { "x": 140, "y": 80 },
+          "width": 220,
+          "height": 185,
+          "data": {
+            "label": "LoRA",
+            "nodeType": "lora",
+            "loras": [
+              {
+                "path": "/home/user/.daydream-scope/models/lora/LTX-2.3-22b-AV-LoRA-talking-head-v1.safetensors",
+                "scale": 1,
+                "mergeMode": "permanent_merge"
+              }
+            ],
+            "loraMergeMode": "permanent_merge",
+            "parameterOutputs": [
+              { "name": "__loras", "type": "string", "defaultValue": "" }
+            ]
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "e-lora-0-ltx2",
+          "source": "lora-0",
+          "sourceHandle": "param:__loras",
+          "target": "ltx2",
+          "targetHandle": "param:__loras"
+        }
+      ],
+      "node_params": {
+        "reply": {
+          "question": "What is your favorite color?",
+          "template": "OHWXPERSON, a portrait of a person facing the camera in a softly lit studio, neutral background. The person is talking, and he says: \"{answer}\"",
+          "model_id": "Qwen/Qwen2.5-0.5B-Instruct",
+          "max_new_tokens": 64
+        },
+        "ltx2": {
+          "input_mode": "text",
+          "height": 200,
+          "width": 200,
+          "num_frames": 121,
+          "num_steps": 8,
+          "schedule": "distilled",
+          "frame_rate": 25,
+          "lora_merge_strategy": "permanent_merge",
+          "i2v_image": "/home/user/.daydream-scope/assets/avatar_reply_reference.png",
+          "i2v_strength": 1,
+          "audio_mode": "driving",
+          "randomize_seed": false,
+          "base_seed": 42
+        }
+      }
+    }
+  }
+}
