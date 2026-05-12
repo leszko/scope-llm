@@ -403,18 +403,18 @@ class LLMNode(BaseNode):
             return {}
         cached = self._cache.get(cache_key)
         if cached is not None:
-            # Cache hit on a previously-asked question — the LLM has
-            # nothing new to say. Suppress the emit entirely so we don't
-            # clobber a fresh value still in the downstream queue (e.g.
-            # if the user re-asked something after speaking a different
-            # question right after).
+            # Cache hit on a previously-asked question — re-emit so
+            # downstream consumers that joined late (or whose queue was
+            # drained by an intervening question) still see the prompt.
+            # The _last_emitted_key check above already prevents per-tick
+            # spam while the same question is held steady.
             self._last_emitted_key = cache_key
             logger.info(
-                "LLM: cached answer for %r — NOT re-emitting %r",
+                "LLM: cached answer for %r — re-emitting %r",
                 question[:80],
                 cached[:80],
             )
-            return {}
+            return {"out": [{"text": cached, "weight": 1.0}]}
 
         logger.info(
             "LLM: answering (model=%s, tokens=%d): %r",
